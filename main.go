@@ -34,16 +34,19 @@ func main() {
 	fmt.Print("\n\n")
 
 	//assert valid parameters
-	target := *flag.String("target", "", ".bsp to fix characters on")
-	placeholder := *flag.String("placeholder", "", "character to replace with newlines")
+	target := flag.String("target", "", ".bsp to fix characters on")
+	placeholder := flag.String("placeholder", "", "character to replace with newlines")
 	flag.Parse()
-	if target == "" || len(placeholder) != 1 {
+
+	fmt.Println(*target)
+	fmt.Println(*placeholder)
+	if *target == "" || len(*placeholder) != 1 {
 		log.Fatal("Invalid arguments have been provided. target must be a valid bsp, placeholder must be a single character")
 	}
 
 	//Start with a backup
-	CreateBackup(target)
-	file := OpenBsp(target)
+	CreateBackup(*target)
+	file := OpenBsp(*target)
 
 	//Read bsp file
 	bspFile := bsp.Parse(file)
@@ -51,13 +54,13 @@ func main() {
 
 	// Fetch and update entdata payload
 	entdata := bspFile.Lumps[0].GetData().(string)
-	payload := UpdateEntdataLump(entdata, placeholder)
+	payload := UpdateEntdataLump(entdata, *placeholder)
 	bspFile.Lumps[0].FromBytes([]byte(payload), int32(len(entdata)))
 
 	//Export bsp back to file
 	output := bsp.ToBytes(bspFile)
 
-	outFile,err := os.Create(target)
+	outFile,err := os.Create(*target)
 	if err != nil {
 		log.Fatal(err)
 	}
