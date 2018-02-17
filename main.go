@@ -25,6 +25,8 @@ func OpenBsp(target string) *os.File{
 }
 
 func UpdateEntdataLump(entdata string, placeholder string) string {
+	n := strings.Count(entdata, placeholder)
+	fmt.Printf("Found %d instances to replace\n", n)
 	return strings.Replace(entdata, placeholder, "\n", -1)
 }
 
@@ -70,5 +72,13 @@ func main() {
 	}
 
 	outFile.Sync()
+
+
+	n := strings.Count(payload, *placeholder)
+	if n != 0 {
+		fmt.Printf("Failed to replace all instances. %d remain.", n)
+	} else {
+		fmt.Println("Successfully replaced all placeholders.")
+	}
 }
 
