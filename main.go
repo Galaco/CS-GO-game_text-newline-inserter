@@ -55,7 +55,7 @@ func main() {
 	// Fetch and update entdata payload
 	entdata := bspFile.Lumps[0].GetData().(string)
 	payload := UpdateEntdataLump(entdata, *placeholder)
-	bspFile.Lumps[0].FromBytes([]byte(payload), int32(len(entdata)))
+	bspFile.Lumps[0] = bspFile.Lumps[0].FromBytes([]byte(payload), int32(len(entdata)))
 
 	//Export bsp back to file
 	output := bsp.ToBytes(bspFile)
