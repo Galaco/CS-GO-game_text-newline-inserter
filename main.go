@@ -50,17 +50,31 @@ func main() {
 	CreateBackup(*target)
 	file := OpenBsp(*target)
 
-	//Read bsp file
-	bspFile := bsp.Parse(file)
+	//
+	fi,err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fileData := make([]byte, fi.Size())
+	file.Read(fileData)
 	file.Close()
 
+	//Read bsp file
+	reader := bsp.NewReader()
+	reader.SetBuffer(fileData)
+	bspFile := reader.Read()
+
+
 	// Fetch and update entdata payload
-	entdata := bspFile.Lumps[0].GetData().(string)
-	payload := UpdateEntdataLump(entdata, *placeholder)
-	bspFile.Lumps[0] = bspFile.Lumps[0].FromBytes([]byte(payload), int32(len(entdata)))
+	entdata := bspFile.GetLump(0).GetContents().GetData().(string)
+	entdata = UpdateEntdataLump(entdata, *placeholder)
+	payload := bspFile.GetLump(0).GetContents().FromBytes([]byte(entdata), int32(len(entdata)))
+	bspFile.GetLump(0).SetContents(payload)
 
 	//Export bsp back to file
-	output := bsp.ToBytes(bspFile)
+	writer := bsp.NewWriter()
+	writer.SetBsp(bspFile)
+	output := writer.Write()
 
 	outFile,err := os.Create(*target)
 	if err != nil {
@@ -74,7 +88,7 @@ func main() {
 	outFile.Sync()
 
 
-	n := strings.Count(payload, *placeholder)
+	n := strings.Count(entdata, *placeholder)
 	if n != 0 {
 		fmt.Printf("Failed to replace all instances. %d remain.", n)
 	} else {
